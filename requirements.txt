@@ -1,0 +1,6 @@
+byteplug-document
+byteplug-endpoints
+pyjwt
+flask_cors
+fireo
+Faker
