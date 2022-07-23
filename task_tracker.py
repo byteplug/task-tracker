@@ -380,3 +380,9 @@ if __name__ == "__main__":
     endpoints.add_shutdown_endpoint()
     endpoints.add_expose_specs_endpoint()
     endpoints.run()
+
+# Extra code to start the server with Gunicorn
+def with_unicorn():
+    endpoints.add_shutdown_endpoint()
+    endpoints.add_expose_specs_endpoint()
+    return endpoints.flask
