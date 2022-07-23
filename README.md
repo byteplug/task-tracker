@@ -1,7 +1,7 @@
 # Task Tracker
 
-Live and working micro-service showcasing the Easy Endpoint standard.
-Equivalent of the Petstore service from OAS. It aims to be as simple as
+Live and working micro-service showcasing the Endpoints standard from Byteplug
+(equivalent of the Petstore service from OAS). It aims to be as simple as
 possible, yet showing every features of the standard, and an example for other
 developers.
 
