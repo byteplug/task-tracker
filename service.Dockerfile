@@ -11,4 +11,4 @@ RUN apt-get update && apt-get install -y --no-install-recommends build-essential
 RUN pip install -r requirements.txt
 
 RUN pip install gunicorn
-CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 questionify:app
+CMD exec gunicorn --bind :$PORT --workers 1 --threads 8 --timeout 0 'task_tracker:with_unicorn()'
