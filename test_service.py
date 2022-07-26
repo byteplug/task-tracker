@@ -4,11 +4,20 @@ import requests
 from faker import Faker
 
 BASE_URL = "https://tasks.byteplug.io"
+# BASE_URL = "http://127.0.0.1:8000"
+# BASE_URL = "https://task-tracker-service-pxfwbhdraa-uw.a.run.app"
 
 def print_and_exit(response):
     print(response.status_code)
     print(response.text)
     exit(1)
+
+def requests_post_json(url, document, headers={}):
+    return requests.post(
+        url,
+        data=json.dumps(document),
+        headers=headers | {'Content-Type': 'application/json'}
+    )
 
 fake = Faker()
 
@@ -37,7 +46,7 @@ document = {
     'password': password
 }
 url = BASE_URL + "/login"
-response = requests.post(url, json=json.dumps(document))
+response = requests_post_json(url, document)
 
 if response.status_code == 200:
     token = response.json()
@@ -61,7 +70,7 @@ document = {
     'description': None,
     'status': None
 }
-response = requests.post(url, headers=headers, json=json.dumps(document))
+response = requests_post_json(url, document, headers)
 if response.status_code == 200:
     task_id = response.json()
     print(f"...task created with ID {task_id}")
@@ -79,7 +88,7 @@ document = {
     'description': "This is a super task. Very important.",
     'status': None
 }
-response = requests.post(url, headers=headers, json=json.dumps(document))
+response = requests_post_json(url, document, headers)
 if response.status_code == 204:
     print(f"...task successfully updated.")
 else:
@@ -96,7 +105,7 @@ document = {
     'description': None,
     'status': 'in-progress'
 }
-response = requests.post(url, headers=headers, json=json.dumps(document))
+response = requests_post_json(url, document, headers)
 if response.status_code == 204:
     print(f"...task successfully updated.")
 else:
@@ -132,7 +141,7 @@ for letter in ('A', 'B', 'C'):
         'description': None,
         'status': None
     }
-    response = requests.post(url, headers=headers, json=json.dumps(document))
+    response = requests_post_json(url, document, headers)
     if response.status_code == 200:
         task_id = response.json()
         print(f"Task {letter} created with ID {task_id}")
@@ -147,7 +156,8 @@ print("")
 print("Marking all tasks as done...")
 
 url = BASE_URL + f"/tasks/mark-all-as"
-response = requests.post(url, headers=headers, json='"done"')
+document = "done"
+response = requests_post_json(url, document, headers)
 if response.status_code == 204:
     print("Tasks successfully updated.")
 else:
