@@ -24,7 +24,7 @@ import jwt
 from fireo.models import Model
 from fireo.fields import TextField, DateTime
 from flask_cors import CORS
-from byteplug.document.types import *
+from byteplug.document import Node
 from byteplug.endpoints import Endpoints
 from byteplug.endpoints import request, response, error
 from byteplug.endpoints import endpoint, collection_endpoint
@@ -105,11 +105,11 @@ def endpoint_adaptor(token=None, item=None, document=None):
 
     return args
 
-@request(Map({
-    'username': String(pattern=USERNAME_PATTERN, length=USERNAME_LENGTH),
-    'password': String(pattern=PASSWORD_PATTERN, length=PASSWORD_LENGTH)
-}).to_object())
-@response(String().to_object())
+@request(Node('map', fields={
+    'username': Node('string', pattern=USERNAME_PATTERN, length=USERNAME_LENGTH),
+    'password': Node('string', pattern=PASSWORD_PATTERN, length=PASSWORD_LENGTH)
+}))
+@response(Node('string'))
 @error('invalid-password')
 @adaptor(endpoint_adaptor)
 @endpoint("login")
@@ -146,11 +146,11 @@ def login(username, password):
 
     return token
 
-@response(Map({
-    'username': String(pattern=USERNAME_PATTERN, length=USERNAME_LENGTH),
-    'password': String(pattern=PASSWORD_PATTERN, length=PASSWORD_LENGTH),
-    'last-updated': Integer()
-}).to_object())
+@response(Node('map', fields={
+    'username': Node('string', pattern=USERNAME_PATTERN, length=USERNAME_LENGTH),
+    'password': Node('string', pattern=PASSWORD_PATTERN, length=PASSWORD_LENGTH),
+    'last-updated': Node('number', decimal=False)
+}))
 @error('invalid-user-id')
 @adaptor(endpoint_adaptor)
 @collection_endpoint("users", "get", operate_on_item=True)
@@ -172,7 +172,7 @@ def get_user(user_id):
         'last-updated': int(user_document.last_updated.timestamp())
     }
 
-@response(List(String()).to_object())
+@response(Node('array', value=Node('string')))
 @adaptor(endpoint_adaptor)
 @collection_endpoint("users", "list")
 def list_users():
@@ -187,12 +187,12 @@ def list_users():
 
     return users
 
-@request(Map({
-    'name':        String(length=TASK_NAME_LENGTH),
-    'description': String(length=TASK_DESCRIPTION_LENGTH, option=True),
-    'status':      Enum(TASK_STATUS, option=True)
-}).to_object())
-@response(String().to_object())
+@request(Node('map', fields={
+    'name':        Node('string', length=TASK_NAME_LENGTH),
+    'description': Node('string', length=TASK_DESCRIPTION_LENGTH, option=True),
+    'status':      Node('enum', values=TASK_STATUS, option=True)
+}))
+@response(Node('string'))
 @adaptor(endpoint_adaptor)
 @collection_endpoint("tasks", "create", authentication=True)
 def create_task(user_key, name, description, status):
@@ -214,11 +214,11 @@ def create_task(user_key, name, description, status):
 
     return task_document.id
 
-@response(Map({
-    'name':        String(length=TASK_NAME_LENGTH),
-    'description': String(length=TASK_DESCRIPTION_LENGTH, option=True),
-    'status':      Enum(list(TASK_STATUS))
-}).to_object())
+@response(Node('map', fields={
+    'name':        Node('string', length=TASK_NAME_LENGTH),
+    'description': Node('string', length=TASK_DESCRIPTION_LENGTH, option=True),
+    'status':      Node('enum', values=TASK_STATUS)
+}))
 @error('invalid-task-id')
 @adaptor(endpoint_adaptor)
 @collection_endpoint("tasks", "get", operate_on_item=True, authentication=True)
@@ -240,11 +240,11 @@ def get_task(user_key, task_id):
         'status':      task_document.status
     }
 
-@request(Map({
-    'name':        String(length=TASK_NAME_LENGTH, option=True),
-    'description': String(length=TASK_DESCRIPTION_LENGTH, option=True),
-    'status':      Enum(TASK_STATUS, option=True)
-}).to_object())
+@request(Node('map', fields={
+    'name':        Node('string', length=TASK_NAME_LENGTH, option=True),
+    'description': Node('string', length=TASK_DESCRIPTION_LENGTH, option=True),
+    'status':      Node('enum', values=TASK_STATUS, option=True)
+}))
 @error('invalid-task-id')
 @adaptor(endpoint_adaptor)
 @collection_endpoint("tasks", "update", operate_on_item=True, authentication=True)
@@ -283,7 +283,7 @@ def delete_task(user_id, task_id):
     # TODO; Rework implemention (perhaps to detect invalid task ID ?)
     Task.collection.delete(user_id + '/tasks/' + task_id)
 
-@response(List(String()).to_object())
+@response(Node('array', value=Node('string')))
 @adaptor(endpoint_adaptor)
 @collection_endpoint("tasks", "list", authentication=True)
 def list_tasks(user_key):
@@ -299,7 +299,7 @@ def list_tasks(user_key):
 
     return tasks
 
-@request(Enum(TASK_STATUS).to_object())
+@request(Node('enum', values=TASK_STATUS))
 @adaptor(endpoint_adaptor)
 @collection_endpoint("tasks", "mark-all-as", authentication=True)
 def mark_all_tasks_as(user_key, status):
@@ -312,14 +312,14 @@ def mark_all_tasks_as(user_key, status):
         task_document.status = status
         task_document.save()
 
-@response(Map({
-    'user-count':            Integer(),
-    'task-count':            Integer(),
+@response(Node('map', fields={
+    'user-count':            Node('number', decimal=False),
+    'task-count':            Node('number', decimal=False),
     # Should be a decimal but it's not implemented yet; work around is to use String()
-    'average-task-per-user': String(),
-    'session-duration':      String(),
-    'max-task-per-user':     Integer()
-}).to_object())
+    'average-task-per-user': Node('string'),
+    'session-duration':      Node('string'),
+    'max-task-per-user':     Node('number', decimal=False)
+}))
 @adaptor(endpoint_adaptor)
 @endpoint("status")
 def status():
